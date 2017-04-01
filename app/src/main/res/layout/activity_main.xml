@@ -4,11 +4,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!--<com.mx.pulllay.lib.PullLayAdapterView
+    <com.mx.pulllay.lib.PullLayAdapterView
+        android:id="@+id/adaptView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:pull_down="true"
         app:pull_down_lay="@layout/srl_layout_header"
+        app:pull_height="60dp"
         app:pull_up_lay="@layout/srl_layout_footer">
 
         <ListView
@@ -17,13 +19,27 @@
             android:layout_height="match_parent"
             android:background="@color/colorPrimary"
             android:text="aksjdhaldksasldkj" />
-    </com.mx.pulllay.lib.PullLayAdapterView>-->
-    <com.mx.pull_lay.MyViewGroup
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <TextView
-            android:layout_width="wrap_content"
-            android:text="123"
-            android:layout_height="wrap_content" />
-    </com.mx.pull_lay.MyViewGroup>
+    </com.mx.pulllay.lib.PullLayAdapterView>
+    <!--<com.mx.pull_lay.MyViewGroup-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="match_parent"-->
+    <!--android:layout_margin="50dp"-->
+    <!--android:background="@color/white">-->
+
+    <!--<TextView-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:layout_marginLeft="5dp"-->
+    <!--android:layout_marginTop="5dp"-->
+    <!--android:background="@color/colorPrimary"-->
+    <!--android:text="123"-->
+    <!--android:textColor="@color/white" />-->
+
+    <!--<TextView-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:background="@color/colorPrimary"-->
+    <!--android:text="123"-->
+    <!--android:textColor="@color/white" />-->
+    <!--</com.mx.pull_lay.MyViewGroup>-->
 </RelativeLayout>

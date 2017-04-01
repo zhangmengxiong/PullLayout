@@ -5,6 +5,9 @@
     <attr name="pull_down" format="boolean" />
     <attr name="pull_down_lay" format="reference" />
     <attr name="pull_background" format="color|reference" />
+    <attr name="pull_up_height" format="dimension" />
+    <attr name="pull_down_height" format="dimension" />
+    <attr name="pull_height" format="dimension" />
 
     <declare-styleable name="PullLayout">
         <attr name="pull_up" />
@@ -12,5 +15,8 @@
         <attr name="pull_background" />
         <attr name="pull_up_lay" />
         <attr name="pull_down_lay" />
+        <attr name="pull_up_height" />
+        <attr name="pull_down_height" />
+        <attr name="pull_height" />
     </declare-styleable>
 </resources>

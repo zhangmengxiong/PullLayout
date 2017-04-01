@@ -51,6 +51,17 @@ public class PullLayAdapterView extends PullLayBase {
                 setFooterView(footer);
             }
 
+            {
+                int height = array.getDimensionPixelOffset(R.styleable.PullLayout_pull_height, 60);
+                setFooterPullHeight(height);
+                setHeadPullHeight(height);
+
+                height = array.getDimensionPixelOffset(R.styleable.PullLayout_pull_up_height, -1);
+                if (height >= 0) setFooterPullHeight(height);
+                height = array.getDimensionPixelOffset(R.styleable.PullLayout_pull_down_height, -1);
+                if (height >= 0) setHeadPullHeight(height);
+            }
+
             boolean mEnablePullDown = array.getBoolean(R.styleable.PullLayout_pull_down, true);
             boolean mEnablePullUp = array.getBoolean(R.styleable.PullLayout_pull_up, true);
             setEnabledPullUp(mEnablePullUp);
@@ -61,7 +72,7 @@ public class PullLayAdapterView extends PullLayBase {
     }
 
     @Override
-    boolean isViewCanPullDown(View view) {
+    final boolean isViewOnTopScroll(View view) {
         boolean intercept = true;
         AdapterView adapterChild = (AdapterView) view;
         // 判断AbsListView是否已经到达内容最顶部
@@ -78,7 +89,7 @@ public class PullLayAdapterView extends PullLayBase {
     }
 
     @Override
-    boolean isViewCanPullUp(View view) {
+    final boolean isViewOnBottomScroll(View view) {
         boolean intercept = false;
         AdapterView adapterChild = (AdapterView) view;
         // 判断AbsListView是否已经到达内容最底部

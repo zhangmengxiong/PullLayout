@@ -8,8 +8,10 @@ package com.mx.pulllay.lib;
 
 public enum PullStatus {
     NORMAL,         // 普通状态
-    TRY_REFRESH,    // 意图刷新
+    START_REFRESH,  // 开始向下拉
+    TRY_REFRESH,    // 超过一定的距离后，放开触摸就会刷新
     REFRESH,        // 刷新状态
-    TRY_LOAD_MORE,  // 意图加载
+    START_LOAD_MORE,// 开始往上拉
+    TRY_LOAD_MORE,  // 超过一定的距离后，放开触摸就会刷新
     LOAD_MORE       // 加载状态
 }

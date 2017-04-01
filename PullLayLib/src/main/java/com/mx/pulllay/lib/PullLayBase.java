@@ -14,6 +14,8 @@ import android.widget.Scroller;
 import static com.mx.pulllay.lib.PullStatus.LOAD_MORE;
 import static com.mx.pulllay.lib.PullStatus.NORMAL;
 import static com.mx.pulllay.lib.PullStatus.REFRESH;
+import static com.mx.pulllay.lib.PullStatus.START_LOAD_MORE;
+import static com.mx.pulllay.lib.PullStatus.START_REFRESH;
 import static com.mx.pulllay.lib.PullStatus.TRY_LOAD_MORE;
 import static com.mx.pulllay.lib.PullStatus.TRY_REFRESH;
 
@@ -45,7 +47,8 @@ abstract class PullLayBase extends ViewGroup {
     private IRefreshListener mListener;
 
     // 最小有效滑动距离(滑动超过该距离才视作一次有效的滑动刷新/加载操作)
-    private int mEffectiveScroll;
+    private int mHeadPullHeight;
+    private int mFooterPullHeight;
 
     public PullLayBase(Context context) {
         super(context);
@@ -75,6 +78,16 @@ abstract class PullLayBase extends ViewGroup {
 
     public void setOnRefreshListener(IRefreshListener listener) {
         mListener = listener;
+    }
+
+    // 设置下拉刷新松开时头部View的高度
+    public void setHeadPullHeight(int i) {
+        this.mHeadPullHeight = i;
+    }
+
+    // 设置上拉加载松开时头部View的高度
+    public void setFooterPullHeight(int i) {
+        this.mFooterPullHeight = i;
     }
 
     public void setFooterView(View mFooterView) {
@@ -121,7 +134,7 @@ abstract class PullLayBase extends ViewGroup {
         if (mHeaderView == null) return;
         // 设置布局参数(宽度为MATCH_PARENT,高度为MATCH_PARENT)
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams
-                (RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+                (RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
         // 将Header添加进Layout当中
         addView(mHeaderView, params);
     }
@@ -133,7 +146,7 @@ abstract class PullLayBase extends ViewGroup {
         if (mFooterView == null) return;
         // 设置布局参数(宽度为MATCH_PARENT,高度为MATCH_PARENT)
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams
-                (RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+                (RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
         // 将footer添加进Layout当中
         addView(mFooterView, params);
     }
@@ -147,16 +160,6 @@ abstract class PullLayBase extends ViewGroup {
             View child = getChildAt(i);
             measureChild(child, widthMeasureSpec, heightMeasureSpec);
         }
-
-        int height = 0;
-        if (mHeaderView != null) {
-            height = mHeaderView.getMeasuredHeight();
-        }
-
-        if (mFooterView != null) {
-            height = Math.max(height, mFooterView.getMeasuredHeight());
-        }
-        if (height > 0) mEffectiveScroll = 60;
     }
 
     // ViewGroup的内容高度(不包括header与footer的高度)
@@ -192,12 +195,15 @@ abstract class PullLayBase extends ViewGroup {
 
     // 用于计算滑动距离的Y坐标中介
     private int mLastYMoved;
+    // 手指按下的Y轴
+    private int mLastYTouch;
+
     // 用于判断是否拦截触摸事件的Y坐标中介
     private int mLastYIntercept;
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent event) {
-        if (this.cStatus == REFRESH || this.cStatus == LOAD_MORE) return true;
+        if (cStatus != NORMAL) return true;
         boolean intercept = false;
         // 记录此次触摸事件的y坐标
         int y = (int) event.getY();
@@ -206,6 +212,7 @@ abstract class PullLayBase extends ViewGroup {
             // Down事件
             case MotionEvent.ACTION_DOWN: {
                 // 记录下本次系列触摸事件的起始点Y坐标
+                mLastYTouch = y;
                 mLastYMoved = y;
                 // 不拦截ACTION_DOWN，因为当ACTION_DOWN被拦截，后续所有触摸事件都会被拦截
                 intercept = false;
@@ -216,11 +223,11 @@ abstract class PullLayBase extends ViewGroup {
                 if (y > mLastYIntercept) { // 下滑操作
                     // 获取最顶部的子视图
                     View child = getChildAt(0);
-                    intercept = isViewCanPullDown(child);
+                    intercept = isViewOnTopScroll(child);
                 } else if (y < mLastYIntercept) { // 上拉操作
                     // 获取最底部的子视图
                     View child = getChildAt(lastChildIndex);
-                    intercept = isViewCanPullUp(child);
+                    intercept = isViewOnBottomScroll(child);
                 } else {
                     intercept = false;
                 }
@@ -237,69 +244,61 @@ abstract class PullLayBase extends ViewGroup {
         return intercept;
     }
 
+    Boolean isTouchDown = null;// 是否往下拖动的标记
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if (isRefreshing()) return true;
+
         int y = (int) event.getY();
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN: {
+                // 记录下本次系列触摸事件的起始点Y坐标
+                mLastYTouch = y;
+                mLastYMoved = y;
+                isTouchDown = null;
+                updateStatus(NORMAL);
                 if (isRefreshing()) return true;
             }
             break;
             case MotionEvent.ACTION_MOVE: {
+                // 是否往下拖动
+                if (isTouchDown == null) {
+                    isTouchDown = mLastYTouch - y < 0;
+                }
+
                 // 计算本次滑动的Y轴增量(距离)
                 int dy = mLastYMoved - y;
-                Log.v("11", "" + dy);
+//                Log.v("11", "getScrollY() =" + getScrollY());
                 // 如果滑动增量小于0，即下拉操作
-                if (dy < 0) {
-                    if (mEnablePullDown) {
-                        // 如果下拉的距离小于mHeaderView1/2的高度,则允许滑动
-                        if (getScrollY() > 0 || Math.abs(getScrollY()) <= mHeaderView.getMeasuredHeight() / 3) {
-                            if (cStatus != TRY_LOAD_MORE && cStatus != LOAD_MORE) {
-                                scrollBy(0, dy);
-                                if (cStatus != REFRESH) {
-                                    if (getScrollY() <= 0) {
-                                        if (cStatus != TRY_REFRESH)
-                                            updateStatus(TRY_REFRESH);
 
-                                        if (Math.abs(getScrollY()) > mEffectiveScroll)
-                                            updateStatus(REFRESH);
-                                    }
-                                }
-                            } else {
-                                if (getScrollY() > 0) {
-                                    dy = dy > 30 ? 30 : dy;
-                                    scrollBy(0, dy);
-                                    if (getScrollY() < mReachBottomScroll + mEffectiveScroll) {
-                                        updateStatus(TRY_LOAD_MORE);
-                                    }
-                                }
-                            }
+                if (isTouchDown) {
+                    // 正在向下滑动
+                    if (mEnablePullDown) {
+                        int scrollSize = Math.abs(mLastYTouch - y);
+                        if (scrollSize <= mHeadPullHeight * 2) {
+                            scrollBy(0, dy);
+                        }
+                        if (scrollSize < mHeadPullHeight) {
+                            // 状态：TRY_LOAD_MORE
+                            updateStatus(START_REFRESH);
+                        } else {
+                            updateStatus(TRY_REFRESH);
                         }
                     }
-                } else if (dy > 0) {
+                } else {
+                    // 正在向上拖动
                     if (mEnablePullUp) {
-                        if (getScrollY() <= mReachBottomScroll + mFooterView.getMeasuredHeight() / 3) {
-                            // 进行Y轴上的滑动
-                            if (cStatus != TRY_REFRESH && cStatus != REFRESH) {
-                                scrollBy(0, dy);
-                                if (cStatus != LOAD_MORE) {
-                                    if (getScrollY() >= mReachBottomScroll) {
-                                        if (cStatus != TRY_LOAD_MORE)
-                                            updateStatus(TRY_LOAD_MORE);
-
-                                        if (getScrollY() >= mReachBottomScroll + mEffectiveScroll)
-                                            updateStatus(LOAD_MORE);
-                                    }
-                                }
-                            } else {
-                                if (getScrollY() <= 0) {
-                                    dy = dy > 30 ? 30 : dy;
-                                    scrollBy(0, dy);
-                                    if (Math.abs(getScrollY()) < mEffectiveScroll)
-                                        updateStatus(TRY_REFRESH);
-                                }
-                            }
+                        int scrollSize = Math.abs(mLastYTouch - y);
+                        if (scrollSize <= mFooterPullHeight * 2) {
+                            scrollBy(0, dy);
+                        }
+                        if (scrollSize < mFooterPullHeight) {
+                            // 状态：TRY_LOAD_MORE
+                            updateStatus(START_LOAD_MORE);
+                        } else {
+                            updateStatus(TRY_LOAD_MORE);
                         }
                     }
                 }
@@ -310,37 +309,38 @@ abstract class PullLayBase extends ViewGroup {
 
             case MotionEvent.ACTION_CANCEL:
             case MotionEvent.ACTION_UP: {
+                mLastYTouch = y;
+                mLastYMoved = y;
+                isTouchDown = null;
+
                 // 判断本次触摸系列事件结束时,Layout的状态
                 switch (cStatus) {
-                    case NORMAL: {
+                    case START_REFRESH: {
+                        mLayoutScroller.startScroll(0, getScrollY(), 0, -getScrollY(), SCROLL_SPEED);
+                        updateStatus(NORMAL);
                         break;
                     }
                     case TRY_REFRESH: {
-                        mLayoutScroller.startScroll(0, getScrollY(), 0, -getScrollY(), SCROLL_SPEED);
-                        cStatus = NORMAL;
+                        updateStatus(REFRESH);
+                        mLayoutScroller.startScroll(0, getScrollY(), 0, -(getScrollY() + mHeadPullHeight), SCROLL_SPEED);
                         break;
                     }
                     case REFRESH: {
-                        mLayoutScroller.startScroll(0, getScrollY(), 0, -(getScrollY() - (-mEffectiveScroll)), SCROLL_SPEED);
-                        if (mListener != null)
-                            mListener.onRefresh();
+                        break;
+                    }
+                    case START_LOAD_MORE: {
+                        updateStatus(NORMAL);
+                        mLayoutScroller.startScroll(0, getScrollY(), 0, -(getScrollY() - mReachBottomScroll), SCROLL_SPEED);
                         break;
                     }
                     case TRY_LOAD_MORE: {
-                        mLayoutScroller.startScroll(0, getScrollY(), 0, -(getScrollY() - mReachBottomScroll), SCROLL_SPEED);
-                        cStatus = NORMAL;
-                        break;
-                    }
-                    case LOAD_MORE: {
-                        mLayoutScroller.startScroll(0, getScrollY(), 0, -((getScrollY() - mEffectiveScroll) - mReachBottomScroll), SCROLL_SPEED);
-                        if (mListener != null)
-                            mListener.onLoadMore();
+                        updateStatus(LOAD_MORE);
+                        mLayoutScroller.startScroll(0, getScrollY(), 0, -((getScrollY() - mFooterPullHeight) - mReachBottomScroll), SCROLL_SPEED);
                         break;
                     }
                 }
             }
         }
-        Log.v("11", "" + this.cStatus);
 
         mLastYIntercept = 0;
         postInvalidate();
@@ -348,35 +348,54 @@ abstract class PullLayBase extends ViewGroup {
     }
 
     private void updateStatus(PullStatus status) {
+        boolean change = (status != cStatus);
         switch (status) {
             case NORMAL:
                 break;
-            case TRY_REFRESH: {
-                this.cStatus = TRY_REFRESH;
+            case START_REFRESH:
+                if (change && mListener != null) {
+                    mListener.onPullDownStart();
+                }
                 break;
-            }
-            case REFRESH: {
-                this.cStatus = REFRESH;
+            case TRY_REFRESH:
+                if (change && mListener != null) {
+                    mListener.onPullDownLoad();
+                }
                 break;
-            }
-            case TRY_LOAD_MORE: {
-                this.cStatus = TRY_LOAD_MORE;
+            case REFRESH:
+                if (change && mListener != null) {
+                    mListener.onPullDownSuccess();
+                }
                 break;
-            }
+            case START_LOAD_MORE:
+                if (change && mListener != null) {
+                    mListener.onPullUpStart();
+                }
+                break;
+            case TRY_LOAD_MORE:
+                if (change && mListener != null) {
+                    mListener.onPullUpLoad();
+                }
+                break;
             case LOAD_MORE:
-                this.cStatus = LOAD_MORE;
-//                tvPullUp.setText(R.string.srl_release_to_refresh);
+                if (change && mListener != null) {
+                    mListener.onPullUpSuccess();
+                }
                 break;
         }
+        if (change) {
+            Log.v("aa", "" + status);
+        }
+        this.cStatus = status;
     }
 
     public boolean isRefreshing() {
         return cStatus == LOAD_MORE || cStatus == REFRESH;
     }
 
-    public void resetLayoutLocation() {
+    public void refreshFinish() {
         cStatus = NORMAL;
-        scrollTo(0, 0);
+        mLayoutScroller.startScroll(0, getScrollY(), 0, -getScrollY(), SCROLL_SPEED);
     }
 
     @Override
@@ -388,7 +407,7 @@ abstract class PullLayBase extends ViewGroup {
         postInvalidate();
     }
 
-    abstract boolean isViewCanPullDown(View view);
+    abstract boolean isViewOnTopScroll(View view);
 
-    abstract boolean isViewCanPullUp(View view);
+    abstract boolean isViewOnBottomScroll(View view);
 }

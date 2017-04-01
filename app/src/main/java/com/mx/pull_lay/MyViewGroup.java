@@ -24,9 +24,8 @@ public class MyViewGroup extends ViewGroup {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         measureChildren(widthMeasureSpec, heightMeasureSpec);
-
-        setMeasuredDimension(1000,1000);
     }
 
     @Override
@@ -35,9 +34,20 @@ public class MyViewGroup extends ViewGroup {
         int leftSum = 0;
         for (int i = 0; i < getChildCount(); i++) {
             View view = getChildAt(i);
-            view.layout(0,topSum,leftSum+view.getMeasuredWidth(),view.getMeasuredHeight());
-            leftSum = leftSum+view.getMeasuredWidth();
-            topSum = topSum+view.getMeasuredHeight();
+            MarginLayoutParams layoutParams = (MarginLayoutParams) view.getLayoutParams();
+            int lp = layoutParams.leftMargin + leftSum;
+            int tp = layoutParams.topMargin + topSum;
+            int rp = lp + view.getMeasuredWidth();
+            int bp = tp + view.getMeasuredHeight();
+
+            view.layout(lp, tp, rp, bp);
+            leftSum = leftSum + rp + layoutParams.rightMargin;
+//            topSum = topSum + bp + layoutParams.bottomMargin;
         }
+    }
+
+    @Override
+    public LayoutParams generateLayoutParams(AttributeSet attrs) {
+        return new MarginLayoutParams(getContext(), attrs);
     }
 }

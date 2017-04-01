@@ -6,8 +6,22 @@ package com.mx.pulllay.lib;
  * 联系方式: zmx_final@163.com
  */
 
-public interface IRefreshListener {
-    void onRefresh();
+public abstract class IRefreshListener {
+    public void onPullDownStart() {
+    }
 
-    void onLoadMore();
+    public void onPullDownLoad() {
+    }
+
+    public void onPullUpStart() {
+    }
+
+    public void onPullUpLoad() {
+    }
+
+    public void onPullDownSuccess() {
+    }
+
+    public void onPullUpSuccess() {
+    }
 }
