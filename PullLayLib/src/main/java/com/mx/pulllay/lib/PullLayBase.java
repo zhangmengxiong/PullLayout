@@ -26,7 +26,7 @@ import static com.mx.pulllay.lib.PullStatus.TRY_REFRESH;
  */
 abstract class PullLayBase extends ViewGroup {
     // Scroller的滑动速度
-    private static final int SCROLL_SPEED = 650;
+    private static final int SCROLL_SPEED = 500;
 
     // 是否允许下拉刷新
     private boolean mEnablePullDown;
@@ -243,11 +243,11 @@ abstract class PullLayBase extends ViewGroup {
         return intercept;
     }
 
-    Boolean isTouchDown = null;// 是否往下拖动的标记
+    private Boolean isTouchDown = null;// 是否往下拖动的标记
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (isRefreshing()) return true;
+        if (isRefreshing() || isInAnimation()) return true;
 
         int y = (int) event.getY();
 
@@ -358,6 +358,11 @@ abstract class PullLayBase extends ViewGroup {
         return true;
     }
 
+    /**
+     * 更新当前的状态！
+     *
+     * @param status
+     */
     private void updateStatus(PullStatus status) {
         boolean change = (status != cStatus);
         switch (status) {
@@ -400,10 +405,27 @@ abstract class PullLayBase extends ViewGroup {
         this.cStatus = status;
     }
 
+    /**
+     * 是否正在刷新状态
+     *
+     * @return
+     */
     public boolean isRefreshing() {
         return cStatus == LOAD_MORE || cStatus == REFRESH;
     }
 
+    /**
+     * 是否正在运行动画中
+     *
+     * @return
+     */
+    private boolean isInAnimation() {
+        return mLayoutScroller != null && !mLayoutScroller.isFinished();
+    }
+
+    /**
+     * 刷新完成！
+     */
     public void refreshFinish() {
         cStatus = NORMAL;
         mLayoutScroller.startScroll(0, getScrollY(), 0, -getScrollY(), SCROLL_SPEED);

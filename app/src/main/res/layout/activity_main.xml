@@ -1,22 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
-    <com.mx.pulllay.lib.PullLayAdapterView
+    <Button
         android:id="@+id/adaptView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:pull_down_lay="@layout/srl_layout_header"
-        app:pull_height="50dp"
-        app:pull_up_lay="@layout/srl_layout_footer">
+        android:layout_height="wrap_content"
+        android:text="AdaptView" />
 
-        <ListView
-            android:id="@+id/listView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/colorPrimary"
-            android:text="aksjdhaldksasldkj" />
-    </com.mx.pulllay.lib.PullLayAdapterView>
-</RelativeLayout>
+    <Button
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="ScrollView" />
+
+    <Button
+        android:id="@+id/recycleView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="RecycleView" />
+</LinearLayout>

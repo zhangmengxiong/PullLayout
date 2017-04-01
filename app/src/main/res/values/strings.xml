@@ -3,4 +3,5 @@
     <string name="srl_keep_pull_up">继续向上拉</string>
     <string name="srl_keep_pull_down">继续向下拉</string>
     <string name="srl_release_to_refresh">松开刷新</string>
+    <string name="title_activity_scroll_view">ScrollViewActivity</string>
 </resources>

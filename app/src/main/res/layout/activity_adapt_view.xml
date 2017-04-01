@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.mx.pulllay.lib.PullLayAdapterView
+        android:id="@+id/adaptView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:pull_down_lay="@layout/srl_layout_header"
+        app:pull_height="60dp"
+        app:pull_up_lay="@layout/srl_layout_footer">
+
+        <ListView
+            android:id="@+id/listView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/colorPrimary" />
+    </com.mx.pulllay.lib.PullLayAdapterView>
+</RelativeLayout>
