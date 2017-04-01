@@ -4,9 +4,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.mx.pulllay.lib.PullLayAdapterView
+    <!--<com.mx.pulllay.lib.PullLayAdapterView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        app:pull_down="true"
         app:pull_down_lay="@layout/srl_layout_header"
         app:pull_up_lay="@layout/srl_layout_footer">
 
@@ -16,6 +17,13 @@
             android:layout_height="match_parent"
             android:background="@color/colorPrimary"
             android:text="aksjdhaldksasldkj" />
-    </com.mx.pulllay.lib.PullLayAdapterView>
-
+    </com.mx.pulllay.lib.PullLayAdapterView>-->
+    <com.mx.pull_lay.MyViewGroup
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <TextView
+            android:layout_width="wrap_content"
+            android:text="123"
+            android:layout_height="wrap_content" />
+    </com.mx.pull_lay.MyViewGroup>
 </RelativeLayout>
