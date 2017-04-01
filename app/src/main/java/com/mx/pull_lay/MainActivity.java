@@ -2,9 +2,10 @@ package com.mx.pull_lay;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.util.Log;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.mx.pulllay.lib.IRefreshListener;
 import com.mx.pulllay.lib.PullLayAdapterView;
@@ -19,29 +20,35 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         adaptView = (PullLayAdapterView) findViewById(R.id.adaptView);
         adaptView.setOnRefreshListener(new IRefreshListener() {
+            TextView pullDownTxv;
+
             @Override
-            public void onPullDownStart() {
-                Log.v(TAG, "onPullDownStart()");
+            public void onPullDownStart(View view) {
+                if (pullDownTxv == null)
+                    pullDownTxv = (TextView) view.findViewById(R.id.srl_tv_pull_down);
+                pullDownTxv.setText("用力往下拉");
             }
 
             @Override
-            public void onPullDownLoad() {
-                Log.v(TAG, "onPullDownLoad()");
+            public void onPullDownLoad(View view) {
+                if (pullDownTxv == null)
+                    pullDownTxv = (TextView) view.findViewById(R.id.srl_tv_pull_down);
+                pullDownTxv.setText("松开刷新");
             }
 
             @Override
-            public void onPullUpStart() {
-                Log.v(TAG, "onPullUpStart()");
+            public void onPullUpStart(View view) {
             }
 
             @Override
-            public void onPullUpLoad() {
-                Log.v(TAG, "onPullUpLoad()");
+            public void onPullUpLoad(View view) {
             }
 
             @Override
-            public void onPullDownSuccess() {
-                Log.v(TAG, "onPullDownSuccess()");
+            public void onPullDownSuccess(View view) {
+                if (pullDownTxv == null)
+                    pullDownTxv = (TextView) view.findViewById(R.id.srl_tv_pull_down);
+                pullDownTxv.setText("正在刷新");
                 adaptView.postDelayed(new Runnable() {
                     @Override
                     public void run() {
@@ -51,8 +58,7 @@ public class MainActivity extends Activity {
             }
 
             @Override
-            public void onPullUpSuccess() {
-                Log.v(TAG, "onPullUpSuccess()");
+            public void onPullUpSuccess(View view) {
                 adaptView.postDelayed(new Runnable() {
                     @Override
                     public void run() {

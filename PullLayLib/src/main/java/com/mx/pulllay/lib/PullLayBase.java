@@ -28,7 +28,6 @@ abstract class PullLayBase extends ViewGroup {
     // Scroller的滑动速度
     private static final int SCROLL_SPEED = 650;
 
-
     // 是否允许下拉刷新
     private boolean mEnablePullDown;
     // 是否允许上拉加载
@@ -277,13 +276,20 @@ abstract class PullLayBase extends ViewGroup {
                     // 正在向下滑动
                     if (mEnablePullDown) {
                         int scrollSize = Math.abs(mLastYTouch - y);
-                        if (scrollSize <= mHeadPullHeight * 2) {
-                            scrollBy(0, dy);
+                        if (scrollSize <= mHeadPullHeight * 3) {
+                            if (dy + getScrollY() < 0) {
+                                // 还没滑动到顶部，自动滑
+                                scrollBy(0, dy);
+                            } else {
+                                // 滑动距离超过了顶部，再算一次滑动距离！
+                                dy = -getScrollY();
+                                scrollBy(0, dy);
+                            }
                         }
                         if (scrollSize < mHeadPullHeight) {
                             // 状态：TRY_LOAD_MORE
                             updateStatus(START_REFRESH);
-                        } else {
+                        } else if (y > mLastYTouch) {
                             updateStatus(TRY_REFRESH);
                         }
                     }
@@ -291,13 +297,18 @@ abstract class PullLayBase extends ViewGroup {
                     // 正在向上拖动
                     if (mEnablePullUp) {
                         int scrollSize = Math.abs(mLastYTouch - y);
-                        if (scrollSize <= mFooterPullHeight * 2) {
-                            scrollBy(0, dy);
+                        if (scrollSize <= mFooterPullHeight * 3) {
+                            if (dy + getScrollY() >= 0) {
+                                scrollBy(0, dy);
+                            } else {
+                                dy = -getScrollY();
+                                scrollBy(0, dy);
+                            }
                         }
                         if (scrollSize < mFooterPullHeight) {
                             // 状态：TRY_LOAD_MORE
                             updateStatus(START_LOAD_MORE);
-                        } else {
+                        } else if (getScrollY() > 0) {
                             updateStatus(TRY_LOAD_MORE);
                         }
                     }
@@ -354,32 +365,32 @@ abstract class PullLayBase extends ViewGroup {
                 break;
             case START_REFRESH:
                 if (change && mListener != null) {
-                    mListener.onPullDownStart();
+                    mListener.onPullDownStart(mHeaderView);
                 }
                 break;
             case TRY_REFRESH:
                 if (change && mListener != null) {
-                    mListener.onPullDownLoad();
+                    mListener.onPullDownLoad(mHeaderView);
                 }
                 break;
             case REFRESH:
                 if (change && mListener != null) {
-                    mListener.onPullDownSuccess();
+                    mListener.onPullDownSuccess(mHeaderView);
                 }
                 break;
             case START_LOAD_MORE:
                 if (change && mListener != null) {
-                    mListener.onPullUpStart();
+                    mListener.onPullUpStart(mFooterView);
                 }
                 break;
             case TRY_LOAD_MORE:
                 if (change && mListener != null) {
-                    mListener.onPullUpLoad();
+                    mListener.onPullUpLoad(mFooterView);
                 }
                 break;
             case LOAD_MORE:
                 if (change && mListener != null) {
-                    mListener.onPullUpSuccess();
+                    mListener.onPullUpSuccess(mFooterView);
                 }
                 break;
         }
