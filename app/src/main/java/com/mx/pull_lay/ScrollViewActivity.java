@@ -5,8 +5,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
 
-import com.mx.pulllay.lib.IRefreshListener;
-import com.mx.pulllay.lib.PullLayScrollView;
+import com.mx.view.base.IRefreshListener;
+import com.mx.view.PullLayScrollView;
 
 public class ScrollViewActivity extends Activity {
     private PullLayScrollView adaptView;

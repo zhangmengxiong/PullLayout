@@ -1,4 +1,4 @@
-package com.mx.pulllay.lib;
+package com.mx.view.base;
 
 /**
  * 创建人： zhangmengxiong
@@ -6,7 +6,7 @@ package com.mx.pulllay.lib;
  * 联系方式: zmx_final@163.com
  */
 
-public enum PullStatus {
+enum PullStatus {
     NORMAL,         // 普通状态
     START_REFRESH,  // 开始向下拉
     TRY_REFRESH,    // 超过一定的距离后，放开触摸就会刷新

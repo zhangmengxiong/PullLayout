@@ -4,10 +4,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.mx.pulllay.lib.PullLayRecycleView
+    <com.mx.view.PullLayRecycleView
         android:id="@+id/pullRecycleView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@color/colorPrimaryDark"
         app:pull_down_lay="@layout/srl_layout_header"
         app:pull_height="60dp"
         app:pull_up_lay="@layout/srl_layout_footer">
@@ -15,5 +16,5 @@
         <android.support.v7.widget.RecyclerView
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
-    </com.mx.pulllay.lib.PullLayRecycleView>
+    </com.mx.view.PullLayRecycleView>
 </RelativeLayout>

@@ -1,11 +1,14 @@
-package com.mx.pulllay.lib;
+package com.mx.view;
 
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.AdapterView;
+
+import com.mx.pulllay.lib.R;
+import com.mx.view.base.PullLayBase;
 
 /**
  * 创建人： zhangmengxiong
@@ -13,24 +16,24 @@ import android.view.View;
  * 联系方式: zmx_final@163.com
  */
 
-public class PullLayRecycleView extends PullLayBase {
+public class PullLayAdapterView extends PullLayBase {
 
-    public PullLayRecycleView(Context context) {
+    public PullLayAdapterView(Context context) {
         super(context);
         initView(context, null);
     }
 
-    public PullLayRecycleView(Context context, AttributeSet attrs) {
+    public PullLayAdapterView(Context context, AttributeSet attrs) {
         super(context, attrs);
         initView(context, attrs);
     }
 
-    public PullLayRecycleView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public PullLayAdapterView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         initView(context, attrs);
     }
 
-    public PullLayRecycleView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public PullLayAdapterView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         initView(context, attrs);
     }
@@ -72,23 +75,46 @@ public class PullLayRecycleView extends PullLayBase {
     }
 
     @Override
-    final boolean isViewOnTopScroll(View view) {
-        boolean intercept = false;
-
-        RecyclerView recyclerChild = (RecyclerView) view;
-        if (recyclerChild.computeVerticalScrollOffset() <= 0)
-            intercept = true;
-
+    protected final boolean isViewOnTopScroll(View view) {
+        boolean intercept = true;
+        if (view == null || !(view instanceof AdapterView)) {
+            throw new IllegalStateException("Child View Must be a AdapterView");
+        }
+        AdapterView adapterChild = (AdapterView) view;
+        // 判断AbsListView是否已经到达内容最顶部
+        try {
+            if (adapterChild.getFirstVisiblePosition() != 0
+                    || adapterChild.getChildAt(0).getTop() != 0) {
+                // 如果没有达到最顶端，则仍然将事件下放
+                intercept = false;
+            }
+        } catch (Exception e) {
+            intercept = (adapterChild.getScrollY() >= 0);
+        }
         return intercept;
     }
 
     @Override
-    final boolean isViewOnBottomScroll(View view) {
+    protected final boolean isViewOnBottomScroll(View view) {
         boolean intercept = false;
-        RecyclerView recyclerChild = (RecyclerView) view;
-        if (recyclerChild.computeVerticalScrollExtent() + recyclerChild.computeVerticalScrollOffset()
-                >= recyclerChild.computeVerticalScrollRange())
-            intercept = true;
+        if (view == null || !(view instanceof AdapterView)) {
+            throw new IllegalStateException("Child View Must be a AdapterView");
+        }
+
+        AdapterView adapterChild = (AdapterView) view;
+        // 判断AbsListView是否已经到达内容最底部
+        try {
+            if (adapterChild.getCount() > 0) {
+                if (adapterChild.getLastVisiblePosition() == adapterChild.getCount() - 1
+                        && (adapterChild.getChildAt(adapterChild.getChildCount() - 1).getBottom() == getMeasuredHeight())) {
+                    // 如果到达底部，则拦截事件
+                    intercept = true;
+                }
+            } else {
+                intercept = true;
+            }
+        } catch (Exception ignored) {
+        }
 
         return intercept;
     }

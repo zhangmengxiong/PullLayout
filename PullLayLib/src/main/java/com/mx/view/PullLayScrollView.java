@@ -1,4 +1,4 @@
-package com.mx.pulllay.lib;
+package com.mx.view;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -6,6 +6,9 @@ import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ScrollView;
+
+import com.mx.pulllay.lib.R;
+import com.mx.view.base.PullLayBase;
 
 /**
  * 创建人： zhangmengxiong
@@ -72,8 +75,12 @@ public class PullLayScrollView extends PullLayBase {
     }
 
     @Override
-    final boolean isViewOnTopScroll(View view) {
+    protected final boolean isViewOnTopScroll(View view) {
         boolean intercept = false;
+        if (view == null || !(view instanceof ScrollView)) {
+            throw new IllegalStateException("Child View Must be a ScrollView");
+        }
+        
         if (view.getScrollY() <= 0) {
             intercept = true;
         }
@@ -81,8 +88,12 @@ public class PullLayScrollView extends PullLayBase {
     }
 
     @Override
-    final boolean isViewOnBottomScroll(View view) {
+    protected final boolean isViewOnBottomScroll(View view) {
         boolean intercept = false;
+        if (view == null || !(view instanceof ScrollView)) {
+            throw new IllegalStateException("Child View Must be a ScrollView");
+        }
+
         ScrollView scrollView = (ScrollView) view;
         View scrollChild = scrollView.getChildAt(0);
 

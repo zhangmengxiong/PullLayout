@@ -7,8 +7,8 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.mx.pulllay.lib.IRefreshListener;
-import com.mx.pulllay.lib.PullLayAdapterView;
+import com.mx.view.base.IRefreshListener;
+import com.mx.view.PullLayAdapterView;
 
 public class AdaptViewActivity extends Activity {
     private final String TAG = getClass().getSimpleName();

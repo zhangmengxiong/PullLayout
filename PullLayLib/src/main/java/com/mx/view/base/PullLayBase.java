@@ -1,4 +1,4 @@
-package com.mx.pulllay.lib;
+package com.mx.view.base;
 
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -11,20 +11,12 @@ import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.Scroller;
 
-import static com.mx.pulllay.lib.PullStatus.LOAD_MORE;
-import static com.mx.pulllay.lib.PullStatus.NORMAL;
-import static com.mx.pulllay.lib.PullStatus.REFRESH;
-import static com.mx.pulllay.lib.PullStatus.START_LOAD_MORE;
-import static com.mx.pulllay.lib.PullStatus.START_REFRESH;
-import static com.mx.pulllay.lib.PullStatus.TRY_LOAD_MORE;
-import static com.mx.pulllay.lib.PullStatus.TRY_REFRESH;
-
 /**
  * 创建人： zhangmengxiong
  * 创建时间： 2017/3/31.
  * 联系方式: zmx_final@163.com
  */
-abstract class PullLayBase extends ViewGroup {
+public abstract class PullLayBase extends ViewGroup {
     // Scroller的滑动速度
     private static final int SCROLL_SPEED = 500;
 
@@ -152,6 +144,13 @@ abstract class PullLayBase extends ViewGroup {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        int size = getChildCount();
+        if (mHeaderView != null) size--;
+        if (mFooterView != null) size--;
+        if (size > 1) {
+            throw new IllegalStateException("PullLay can host only one direct child");
+        }
+
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         // 遍历进行子视图的测量工作
         for (int i = 0; i < getChildCount(); i++) {
@@ -202,7 +201,7 @@ abstract class PullLayBase extends ViewGroup {
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent event) {
-        if (cStatus != NORMAL) return true;
+        if (cStatus != PullStatus.NORMAL) return true;
         boolean intercept = false;
         // 记录此次触摸事件的y坐标
         int y = (int) event.getY();
@@ -257,7 +256,7 @@ abstract class PullLayBase extends ViewGroup {
                 mLastYTouch = y;
                 mLastYMoved = y;
                 isTouchDown = null;
-                updateStatus(NORMAL);
+                updateStatus(PullStatus.NORMAL);
                 if (isRefreshing()) return true;
             }
             break;
@@ -288,9 +287,9 @@ abstract class PullLayBase extends ViewGroup {
                         }
                         if (scrollSize < mHeadPullHeight) {
                             // 状态：TRY_LOAD_MORE
-                            updateStatus(START_REFRESH);
+                            updateStatus(PullStatus.START_REFRESH);
                         } else if (y > mLastYTouch) {
-                            updateStatus(TRY_REFRESH);
+                            updateStatus(PullStatus.TRY_REFRESH);
                         }
                     }
                 } else {
@@ -307,9 +306,9 @@ abstract class PullLayBase extends ViewGroup {
                         }
                         if (scrollSize < mFooterPullHeight) {
                             // 状态：TRY_LOAD_MORE
-                            updateStatus(START_LOAD_MORE);
+                            updateStatus(PullStatus.START_LOAD_MORE);
                         } else if (getScrollY() > 0) {
-                            updateStatus(TRY_LOAD_MORE);
+                            updateStatus(PullStatus.TRY_LOAD_MORE);
                         }
                     }
                 }
@@ -328,11 +327,11 @@ abstract class PullLayBase extends ViewGroup {
                 switch (cStatus) {
                     case START_REFRESH: {
                         mLayoutScroller.startScroll(0, getScrollY(), 0, -getScrollY(), SCROLL_SPEED);
-                        updateStatus(NORMAL);
+                        updateStatus(PullStatus.NORMAL);
                         break;
                     }
                     case TRY_REFRESH: {
-                        updateStatus(REFRESH);
+                        updateStatus(PullStatus.REFRESH);
                         mLayoutScroller.startScroll(0, getScrollY(), 0, -(getScrollY() + mHeadPullHeight), SCROLL_SPEED);
                         break;
                     }
@@ -340,12 +339,12 @@ abstract class PullLayBase extends ViewGroup {
                         break;
                     }
                     case START_LOAD_MORE: {
-                        updateStatus(NORMAL);
+                        updateStatus(PullStatus.NORMAL);
                         mLayoutScroller.startScroll(0, getScrollY(), 0, -(getScrollY() - mReachBottomScroll), SCROLL_SPEED);
                         break;
                     }
                     case TRY_LOAD_MORE: {
-                        updateStatus(LOAD_MORE);
+                        updateStatus(PullStatus.LOAD_MORE);
                         mLayoutScroller.startScroll(0, getScrollY(), 0, -((getScrollY() - mFooterPullHeight) - mReachBottomScroll), SCROLL_SPEED);
                         break;
                     }
@@ -411,7 +410,7 @@ abstract class PullLayBase extends ViewGroup {
      * @return
      */
     public boolean isRefreshing() {
-        return cStatus == LOAD_MORE || cStatus == REFRESH;
+        return cStatus == PullStatus.LOAD_MORE || cStatus == PullStatus.REFRESH;
     }
 
     /**
@@ -427,7 +426,7 @@ abstract class PullLayBase extends ViewGroup {
      * 刷新完成！
      */
     public void refreshFinish() {
-        cStatus = NORMAL;
+        cStatus = PullStatus.NORMAL;
         mLayoutScroller.startScroll(0, getScrollY(), 0, -getScrollY(), SCROLL_SPEED);
     }
 
@@ -440,7 +439,7 @@ abstract class PullLayBase extends ViewGroup {
         postInvalidate();
     }
 
-    abstract boolean isViewOnTopScroll(View view);
+    protected abstract boolean isViewOnTopScroll(View view);
 
-    abstract boolean isViewOnBottomScroll(View view);
+    protected abstract boolean isViewOnBottomScroll(View view);
 }
