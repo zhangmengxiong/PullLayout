@@ -2,6 +2,7 @@ package com.mx.view.base;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.os.Handler;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -18,8 +19,9 @@ import android.widget.Scroller;
  */
 public abstract class PullLayBase extends ViewGroup {
     // Scroller的滑动速度
-    private static final int SCROLL_SPEED = 500;
+    private int SCROLL_SPEED = 500;
 
+    private Handler mHandler;
     // 是否允许下拉刷新
     private boolean mEnablePullDown;
     // 是否允许上拉加载
@@ -65,18 +67,32 @@ public abstract class PullLayBase extends ViewGroup {
     private void init(Context context) {
         // 实例化Scroller
         mLayoutScroller = new Scroller(context);
+        mHandler = new Handler();
     }
 
+    /**
+     * 设置刷新监听
+     *
+     * @param listener
+     */
     public void setOnRefreshListener(IRefreshListener listener) {
         mListener = listener;
     }
 
-    // 设置下拉刷新松开时头部View的高度
+    /**
+     * 设置下拉刷新松开时头部View的高度
+     *
+     * @param i 单位：px
+     */
     public void setHeadPullHeight(int i) {
         this.mHeadPullHeight = i;
     }
 
-    // 设置上拉加载松开时头部View的高度
+    /**
+     * 设置上拉加载松开时头部View的高度
+     *
+     * @param i 单位：px
+     */
     public void setFooterPullHeight(int i) {
         this.mFooterPullHeight = i;
     }
@@ -85,10 +101,33 @@ public abstract class PullLayBase extends ViewGroup {
         this.mFooterView = mFooterView;
     }
 
+    /**
+     * 设置动画时长
+     *
+     * @param i
+     */
+    public void setDuration(int i) {
+        this.SCROLL_SPEED = i;
+    }
+
+    public View getFooterView() {
+        return mFooterView;
+    }
+
     public void setHeaderView(View mHeaderView) {
         this.mHeaderView = mHeaderView;
     }
 
+    public View getHeaderView() {
+        return mHeaderView;
+    }
+
+    /**
+     * 设置是否可以向上拖动加载
+     *
+     * @param b true：可以拖动
+     *          false：不能拖动
+     */
     public void setEnabledPullUp(boolean b) {
         this.mEnablePullUp = b;
         if (!mEnablePullUp && mFooterView != null && mFooterView.isShown()) {
@@ -96,6 +135,12 @@ public abstract class PullLayBase extends ViewGroup {
         }
     }
 
+    /**
+     * 设置是否可以向下拖动刷新
+     *
+     * @param b true：可以拖动
+     *          false：不能拖动
+     */
     public void setEnablePullDown(boolean b) {
         this.mEnablePullDown = b;
         if (!b && mHeaderView != null && mHeaderView.isShown()) {
@@ -103,7 +148,7 @@ public abstract class PullLayBase extends ViewGroup {
         }
     }
 
-    int lastChildIndex;
+    private int lastChildIndex;
 
     @Override
     protected void onFinishInflate() {
@@ -422,11 +467,25 @@ public abstract class PullLayBase extends ViewGroup {
         return mLayoutScroller != null && !mLayoutScroller.isFinished();
     }
 
+    public void refreshFinish(int delay) {
+        mHandler.removeCallbacksAndMessages(null);
+        mHandler.postDelayed(delayFinish, delay);
+    }
+
+    private Runnable delayFinish = new Runnable() {
+        @Override
+        public void run() {
+            refreshFinish();
+        }
+    };
+
     /**
      * 刷新完成！
      */
     public void refreshFinish() {
         cStatus = PullStatus.NORMAL;
+        if (mLayoutScroller != null && !mLayoutScroller.isFinished())
+            mLayoutScroller.abortAnimation();
         mLayoutScroller.startScroll(0, getScrollY(), 0, -getScrollY(), SCROLL_SPEED);
     }
 
@@ -439,7 +498,19 @@ public abstract class PullLayBase extends ViewGroup {
         postInvalidate();
     }
 
+    /**
+     * 判断当前容器内的控件是否到达了顶部
+     *
+     * @param view 子控件对象
+     * @return 如果返回false，则说明子空间还可以向上滑动，否则将拦截向上滑动的事件！
+     */
     protected abstract boolean isViewOnTopScroll(View view);
 
+    /**
+     * 判断子控件是否到达了底部不能再向上滑动
+     *
+     * @param view 子控件对象
+     * @return 如果返回false，则说明子空间还可以向下滑动，否则将拦截向下滑动的事件！
+     */
     protected abstract boolean isViewOnBottomScroll(View view);
 }

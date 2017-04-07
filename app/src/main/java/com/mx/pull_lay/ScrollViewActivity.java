@@ -5,8 +5,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
 
-import com.mx.view.base.IRefreshListener;
 import com.mx.view.PullLayScrollView;
+import com.mx.view.base.IRefreshListener;
 
 public class ScrollViewActivity extends Activity {
     private PullLayScrollView adaptView;
@@ -49,9 +49,10 @@ public class ScrollViewActivity extends Activity {
                 adaptView.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        adaptView.refreshFinish();
+                        pullDownTxv.setText("刷新成功！");
+                        adaptView.refreshFinish(1000);
                     }
-                }, 2000);
+                }, 100);
             }
 
             @Override
@@ -59,9 +60,9 @@ public class ScrollViewActivity extends Activity {
                 adaptView.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        adaptView.refreshFinish();
+                        adaptView.refreshFinish(1000);
                     }
-                }, 2000);
+                }, 100);
             }
         });
     }
